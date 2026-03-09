@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  kubebot:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - ANTHROPIC_MODEL=${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
+      - CHROMA_DB_PATH=/app/chroma_db
+      - DATA_DIR=/app/data
+    volumes:
+      # Persist the vector DB and downloaded docs between restarts
+      - kubebot_chroma:/app/chroma_db
+      - kubebot_data:/app/data
+      - kubebot_models:/app/.model_cache
+    restart: unless-stopped
+
+volumes:
+  kubebot_chroma:
+  kubebot_data:
+  kubebot_models:
