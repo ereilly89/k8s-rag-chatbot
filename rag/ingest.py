@@ -37,7 +37,7 @@ COLLECTION_NAME = "k8s_docs"
 # Kubernetes documentation pages to ingest
 K8S_DOC_URLS = [
     # Core concepts
-    "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/overview/what-is-kubernetes.md",
+    "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/overview/_index.md",
     "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/overview/components.md",
     "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/overview/kubernetes-api.md",
     # Workloads
@@ -74,7 +74,7 @@ K8S_DOC_URLS = [
     "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/architecture/control-plane-node-communication.md",
     "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/architecture/controller.md",
     "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/architecture/leases.md",
-    "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/architecture/etcd.md",
+    "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/architecture/_index.md",
 ]
 
 
