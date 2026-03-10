@@ -4,7 +4,16 @@ app.py — KubeBot: Kubernetes RAG Chatbot
 Streamlit UI wrapping the LlamaIndex + ChromaDB + Claude RAG pipeline.
 """
 
+import sys
 import os
+from pathlib import Path
+
+# Ensure the project root is on sys.path so local modules are always found,
+# regardless of where Streamlit is launched from.
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 import time
 import streamlit as st
 from dotenv import load_dotenv
@@ -169,17 +178,62 @@ st.markdown("""
     margin-top: 4px;
   }
 
-  /* Input box */
-  .stTextInput input, .stChatInput textarea {
+  /* Chat input — target every layer Streamlit wraps around the textarea */
+  .stChatInput,
+  .stChatInput > div,
+  .stChatInput > div > div,
+  [data-testid="stChatInput"],
+  [data-testid="stChatInput"] > div,
+  [data-testid="stChatInputContainer"],
+  [data-testid="stChatInputContainer"] > div {
+    background: #161b22 !important;
+    border-color: #30363d !important;
+  }
+
+  /* The textarea itself */
+  .stChatInput textarea,
+  [data-testid="stChatInputContainer"] textarea {
+    background: #161b22 !important;
+    color: #e6edf3 !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 0.95rem !important;
+    caret-color: #58a6ff !important;
+  }
+
+  /* Placeholder text */
+  .stChatInput textarea::placeholder,
+  [data-testid="stChatInputContainer"] textarea::placeholder {
+    color: #8b949e !important;
+    opacity: 1 !important;
+  }
+
+  /* Outer border/shadow container */
+  [data-testid="stChatInputContainer"] {
+    background: #161b22 !important;
+    border: 1px solid #30363d !important;
+    border-radius: 10px !important;
+    box-shadow: 0 0 0 1px #30363d !important;
+  }
+
+  /* Focus state */
+  [data-testid="stChatInputContainer"]:focus-within {
+    border-color: #58a6ff !important;
+    box-shadow: 0 0 0 2px #58a6ff33 !important;
+  }
+
+  /* Send button inside chat input */
+  [data-testid="stChatInputContainer"] button {
+    background: transparent !important;
+    color: #58a6ff !important;
+  }
+
+  /* Text input (sidebar API key field) */
+  .stTextInput input {
     background: #161b22 !important;
     border: 1px solid #30363d !important;
     color: #e6edf3 !important;
     font-family: 'DM Sans', sans-serif !important;
     border-radius: 8px !important;
-  }
-  .stChatInput textarea:focus {
-    border-color: #58a6ff !important;
-    box-shadow: 0 0 0 2px #58a6ff22 !important;
   }
 
   /* Buttons */
@@ -287,7 +341,7 @@ with st.sidebar:
         st.session_state.top_k = top_k
         # Rebuild query engine with new top_k if index is ready
         if st.session_state.index:
-            from rag import build_query_engine
+            from kubebot_rag import build_query_engine
             st.session_state.query_engine = build_query_engine(
                 st.session_state.index, similarity_top_k=top_k
             )
@@ -309,7 +363,7 @@ with st.sidebar:
 
     # Stats
     if st.session_state.index_ready:
-        from rag import get_collection_stats
+        from kubebot_rag import get_collection_stats
         stats = get_collection_stats()
         st.markdown(f"""
         <div class="stat-box">
@@ -366,7 +420,7 @@ if build_btn:
                 )
 
             try:
-                from rag import build_index, build_query_engine
+                from kubebot_rag import build_index, build_query_engine
                 index = build_index(progress_callback=update_progress)
                 query_engine = build_query_engine(index, similarity_top_k=st.session_state.top_k)
 
@@ -389,10 +443,10 @@ if build_btn:
 # ── Auto-load index if it already exists ─────────────────────────────────────
 if not st.session_state.index_ready and os.getenv("ANTHROPIC_API_KEY"):
     try:
-        from rag import get_collection_stats
+        from kubebot_rag import get_collection_stats
         stats = get_collection_stats()
         if stats["chunk_count"] > 0:
-            from rag import build_index, build_query_engine
+            from kubebot_rag import build_index, build_query_engine
             with st.spinner("Loading existing index..."):
                 index = build_index()
                 query_engine = build_query_engine(index, similarity_top_k=st.session_state.top_k)
@@ -468,7 +522,7 @@ if question:
 
         with st.spinner("⎈ Retrieving and reasoning..."):
             try:
-                from rag import query_with_sources
+                from kubebot_rag import query_with_sources
                 result = query_with_sources(st.session_state.query_engine, question)
 
                 st.session_state.messages.append({
