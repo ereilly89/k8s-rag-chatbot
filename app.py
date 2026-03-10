@@ -178,16 +178,24 @@ st.markdown("""
     margin-top: 4px;
   }
 
-  /* Chat input — target every layer Streamlit wraps around the textarea */
+  /* Chat input — dark background on every wrapper layer */
   .stChatInput,
   .stChatInput > div,
   .stChatInput > div > div,
+  .stChatInput > div > div > div,
   [data-testid="stChatInput"],
   [data-testid="stChatInput"] > div,
   [data-testid="stChatInputContainer"],
-  [data-testid="stChatInputContainer"] > div {
-    background: #161b22 !important;
-    border-color: #30363d !important;
+  [data-testid="stChatInputContainer"] > div,
+  .stBottomBlockContainer,
+  [data-testid="stBottomBlockContainer"],
+  .stBottom,
+  [data-testid="stBottom"],
+  .stBottom > div,
+  [data-testid="stBottom"] > div {
+    background: #0d1117 !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
   }
 
   /* The textarea itself */
@@ -198,6 +206,7 @@ st.markdown("""
     font-family: 'DM Sans', sans-serif !important;
     font-size: 0.95rem !important;
     caret-color: #58a6ff !important;
+    border: 1px solid #30363d !important;
   }
 
   /* Placeholder text */
@@ -207,18 +216,12 @@ st.markdown("""
     opacity: 1 !important;
   }
 
-  /* Outer border/shadow container */
-  [data-testid="stChatInputContainer"] {
-    background: #161b22 !important;
-    border: 1px solid #30363d !important;
-    border-radius: 10px !important;
-    box-shadow: 0 0 0 1px #30363d !important;
-  }
-
   /* Focus state */
-  [data-testid="stChatInputContainer"]:focus-within {
+  .stChatInput textarea:focus,
+  [data-testid="stChatInputContainer"] textarea:focus {
     border-color: #58a6ff !important;
-    box-shadow: 0 0 0 2px #58a6ff33 !important;
+    box-shadow: 0 0 0 2px #58a6ff22 !important;
+    outline: none !important;
   }
 
   /* Send button inside chat input */
@@ -278,8 +281,45 @@ st.markdown("""
     padding: 0;
   }
 
-  /* Hide Streamlit branding */
-  #MainMenu, footer, header { visibility: hidden; }
+  /* Hide Streamlit branding — removing 'header' keeps the sidebar toggle visible */
+  #MainMenu, footer { visibility: hidden; }
+
+  /* Style the top header bar to match the dark theme */
+  header[data-testid="stHeader"] {
+    background: #0d1117 !important;
+    border-bottom: 1px solid #21262d !important;
+    box-shadow: none !important;
+  }
+
+  /* Sidebar open AND close button — always white, same rules for both */
+  button[data-testid="baseButton-headerNoPadding"],
+  [data-testid="stSidebarCollapseButton"] button {
+    color: #ffffff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  button[data-testid="baseButton-headerNoPadding"] svg path,
+  [data-testid="stSidebarCollapseButton"] button svg path {
+    fill: #ffffff !important;
+    stroke: #ffffff !important;
+  }
+
+  /* Deploy button */
+  header [data-testid="stToolbar"],
+  header [data-testid="stDecoration"],
+  .stDeployButton,
+  header button[kind="header"] {
+    background: transparent !important;
+    color: #8b949e !important;
+    border: 1px solid #30363d !important;
+    border-radius: 6px !important;
+  }
+  .stDeployButton:hover,
+  header button[kind="header"]:hover {
+    background: #21262d !important;
+    border-color: #30363d !important;
+    color: #e6edf3 !important;
+  }
 </style>
 """, unsafe_allow_html=True)
 
@@ -341,7 +381,7 @@ with st.sidebar:
         st.session_state.top_k = top_k
         # Rebuild query engine with new top_k if index is ready
         if st.session_state.index:
-            from kubebot_rag import build_query_engine
+            from rag import build_query_engine
             st.session_state.query_engine = build_query_engine(
                 st.session_state.index, similarity_top_k=top_k
             )
@@ -363,7 +403,7 @@ with st.sidebar:
 
     # Stats
     if st.session_state.index_ready:
-        from kubebot_rag import get_collection_stats
+        from rag import get_collection_stats
         stats = get_collection_stats()
         st.markdown(f"""
         <div class="stat-box">
@@ -420,7 +460,7 @@ if build_btn:
                 )
 
             try:
-                from kubebot_rag import build_index, build_query_engine
+                from rag import build_index, build_query_engine
                 index = build_index(progress_callback=update_progress)
                 query_engine = build_query_engine(index, similarity_top_k=st.session_state.top_k)
 
@@ -443,10 +483,10 @@ if build_btn:
 # ── Auto-load index if it already exists ─────────────────────────────────────
 if not st.session_state.index_ready and os.getenv("ANTHROPIC_API_KEY"):
     try:
-        from kubebot_rag import get_collection_stats
+        from rag import get_collection_stats
         stats = get_collection_stats()
         if stats["chunk_count"] > 0:
-            from kubebot_rag import build_index, build_query_engine
+            from rag import build_index, build_query_engine
             with st.spinner("Loading existing index..."):
                 index = build_index()
                 query_engine = build_query_engine(index, similarity_top_k=st.session_state.top_k)
@@ -522,7 +562,7 @@ if question:
 
         with st.spinner("⎈ Retrieving and reasoning..."):
             try:
-                from kubebot_rag import query_with_sources
+                from rag import query_with_sources
                 result = query_with_sources(st.session_state.query_engine, question)
 
                 st.session_state.messages.append({
