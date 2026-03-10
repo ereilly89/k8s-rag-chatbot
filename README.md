@@ -38,7 +38,7 @@ and **Claude**.
 ### 1. Clone and install
 
 ```bash
-git clone <your-repo>
+git clone https://github.com/ereilly89/k8s-rag-chatbot.git
 cd k8s-rag-chatbot
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
